@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p ./.dev-config/tsconfig.build.json",
     "test": "jest --passWithNoTests --runInBand --no-cache",
     "test:all": "npm test -- -c ./.dev-config/jest.config.ts",
     "test:unit": "npm test -- --watch -c ./.dev-config/jest-unit.config.ts"

@@ -1,11 +1,14 @@
 import { DbAddAccount } from './db-add-account'
-import { LoadAccountByEmailRepository } from '../../protocols/database'
+import { EmailAlreadyExistsError } from '@/data/errors'
+import { LoadAccountByEmailRepositoryResult } from '@/data/protocols/database'
 
 const fakeHashedValue = 'hashed_value'
 
 function makeSut() {
   const loadAccountByEmailRepositoryStub = {
-    loadByEmail: jest.fn(() => Promise.resolve(null))
+    loadByEmail: jest.fn<
+      Promise<LoadAccountByEmailRepositoryResult>, []
+    >(() => Promise.resolve(null))
   }
 
   const hasherStub = {
@@ -38,6 +41,23 @@ describe('Db add account use case', () => {
     expect(loadAccountByEmailRepositoryStub.loadByEmail)
       .toHaveBeenCalledWith(fakeParams.email)
   })
+
+  it(
+    'should throw an EmailAlreadyExistsError if LoadAccountByEmailRepository returns an account',
+    async () => {
+      const { sut, loadAccountByEmailRepositoryStub } = makeSut()
+      loadAccountByEmailRepositoryStub.loadByEmail.mockResolvedValueOnce({
+        id: 1,
+        name: 'any_name',
+        email: 'any_email@mail.com',
+        password: 'any_password'
+      })
+
+      const promise = sut.add(fakeParams)
+
+      await expect(promise).rejects.toThrowError(EmailAlreadyExistsError)
+    }
+  )
   
   it('should call Hasher with correct values', async () => {
     const { sut, hasherStub } = makeSut()

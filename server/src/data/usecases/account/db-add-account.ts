@@ -1,6 +1,7 @@
 import { LoadAccountByEmailRepository } from '@/data/protocols/database'
 import { AddAccount, AddAccountParams } from '@/domain/usecases'
-import { Hasher } from '../../protocols/cryptography'
+import { Hasher } from '@/data/protocols/cryptography'
+import { EmailAlreadyExistsError } from '@/data/errors'
 
 export class DbAddAccount implements AddAccount {
   constructor(
@@ -9,7 +10,11 @@ export class DbAddAccount implements AddAccount {
   ) {}
   
   async add(params: AddAccountParams): Promise<void> {
-    await this.loadAccountByEmailRepository.loadByEmail(params.email)
+    const account = await this.loadAccountByEmailRepository.loadByEmail(params.email)
+
+    if(account) {
+      throw new EmailAlreadyExistsError()
+    }
 
     this.hasher.hash(params.password)
   }
